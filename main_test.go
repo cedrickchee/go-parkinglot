@@ -20,7 +20,7 @@ func Test_main(t *testing.T) {
 	}()
 
 	// Wire up interactive inputs redirection
-	inpFile, err := os.Open("data/input_interactive.txt")
+	inpFile, err := os.Open("test/input_interactive.txt")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -65,7 +65,7 @@ Unknown input command
 	}{
 		{
 			name: "File input",
-			args: []string{"cmd", "data/input_file.txt"},
+			args: []string{"cmd", "test/input_file.txt"},
 		},
 		{
 			name: "Interactive input",
