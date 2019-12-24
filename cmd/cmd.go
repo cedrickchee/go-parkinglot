@@ -12,10 +12,27 @@ import (
 	"github.com/cedrickchee/go-parkinglot/internal/printer"
 )
 
-var inputInteractive io.Reader = os.Stdin
-var outStream io.Writer = os.Stdout
+type RunOptions struct {
+	Stdin  io.Reader
+	Stdout io.Writer
+}
 
 func Run(args []string) {
+	RunCustom(args, nil)
+}
+
+func RunCustom(args []string, runOpts *RunOptions) {
+	if runOpts == nil {
+		runOpts = &RunOptions{}
+	}
+
+	if runOpts.Stdin == nil {
+		runOpts.Stdin = os.Stdin
+	}
+	if runOpts.Stdout == nil {
+		runOpts.Stdout = os.Stdout
+	}
+
 	argsLen := len(args)
 
 	var scanner *bufio.Scanner
@@ -31,7 +48,7 @@ func Run(args []string) {
 	case argsLen > 2:
 		log.Fatal("Unknown command line input")
 	default:
-		scanner = bufio.NewScanner(inputInteractive)
+		scanner = bufio.NewScanner(runOpts.Stdin)
 	}
 
 	exit := false
@@ -41,15 +58,15 @@ func Run(args []string) {
 		switch {
 		case validate(input, "create_parking_lot", 2):
 			maxSlot := 6
-			fmt.Fprintf(outStream, "Created a parking lot with %v slots\n", maxSlot)
+			fmt.Fprintf(runOpts.Stdout, "Created a parking lot with %v slots\n", maxSlot)
 
 		case validate(input, "park", 3):
 			slotNo := 1
-			fmt.Fprintf(outStream, "Allocated slot number: %v\n", slotNo)
+			fmt.Fprintf(runOpts.Stdout, "Allocated slot number: %v\n", slotNo)
 
 		case validate(input, "leave", 2):
 			slotNo := 1
-			fmt.Fprintf(outStream, "Slot number %v is free\n", slotNo)
+			fmt.Fprintf(runOpts.Stdout, "Slot number %v is free\n", slotNo)
 
 		case validate(input, "status", 1):
 			cars := []struct {
@@ -68,7 +85,7 @@ func Run(args []string) {
 					colour:       "Black",
 				},
 			}
-			var w = tabwriter.NewWriter(outStream, 0, 0, 4, ' ', 0)
+			var w = tabwriter.NewWriter(runOpts.Stdout, 0, 0, 4, ' ', 0)
 			fmt.Fprintln(w, "Slot No.\tRegistration No\tColour")
 			for _, car := range cars {
 				s := fmt.Sprintf("%v\t%s\t%s", car.slot, car.registration, car.colour)
@@ -79,7 +96,7 @@ func Run(args []string) {
 		case validate(input, "registration_numbers_for_cars_with_colour", 2):
 			var registrations []string
 			registrations = append(registrations, "KA-01-HH-1234")
-			err := printer.Fprintf(outStream, registrations)
+			err := printer.Fprintf(runOpts.Stdout, registrations)
 			if err != nil {
 				panic(err.Error())
 			}
@@ -87,20 +104,20 @@ func Run(args []string) {
 		case validate(input, "slot_numbers_for_cars_with_colour", 2):
 			var slots []int
 			slots = append(slots, 1)
-			err := printer.Fprintf(outStream, slots)
+			err := printer.Fprintf(runOpts.Stdout, slots)
 			if err != nil {
 				panic(err.Error())
 			}
 
 		case validate(input, "slot_number_for_registration_number", 2):
 			slotNo := 0
-			fmt.Fprintln(outStream, slotNo)
+			fmt.Fprintln(runOpts.Stdout, slotNo)
 
 		case validate(input, "exit", 1):
 			exit = true
 
 		default:
-			fmt.Fprintln(outStream, "Unknown input command")
+			fmt.Fprintln(runOpts.Stdout, "Unknown input command")
 		}
 	}
 }

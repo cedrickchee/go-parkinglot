@@ -7,17 +7,11 @@ import (
 	"testing"
 )
 
-func Test_cmd(t *testing.T) {
-	// Save current state before rewriting state so that we can restore it later
-	currArgs := os.Args
-	currInputInteractive := inputInteractive
-	currOutStream := outStream
-	defer func() {
-		// Restore state
-		os.Args = currArgs
-		inputInteractive = currInputInteractive
-		outStream = currOutStream
-	}()
+func TestCommand(t *testing.T) {
+	runOpts := &RunOptions{
+		Stdin:  os.Stdin,
+		Stdout: os.Stdout,
+	}
 
 	// Wire up interactive inputs redirection
 	inpFile, err := os.Open("../test/input_interactive.txt")
@@ -25,11 +19,11 @@ func Test_cmd(t *testing.T) {
 		log.Fatal(err)
 	}
 	defer func() { inpFile.Close() }()
-	inputInteractive = inpFile
+	runOpts.Stdin = inpFile
 
 	// Wire up outputs redirection
 	var gotBuf bytes.Buffer
-	outStream = &gotBuf
+	runOpts.Stdout = &gotBuf
 
 	// Expected CLI output
 	out := `Created a parking lot with 6 slots
@@ -76,7 +70,7 @@ Unknown input command
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			os.Args = tt.args
-			Run(os.Args)
+			RunCustom(os.Args, runOpts)
 			if !bytes.Equal(gotBuf.Bytes(), wantBuf) {
 				t.Errorf("got = %v, want = %v", gotBuf.String(), string(wantBuf))
 			}
