@@ -16,6 +16,16 @@ func generateParkingSlot(capacity int) []*Slot {
 	return slots
 }
 
+func compareParkingLot(t *testing.T, got *ParkingLot, want *ParkingLot) {
+	if !reflect.DeepEqual(got.emptySlot, want.emptySlot) ||
+		!reflect.DeepEqual(got.slots, want.slots) ||
+		got.address != want.address ||
+		got.highestSlot != want.highestSlot ||
+		got.capacity != want.capacity {
+		t.Errorf("createParkingLot() got = %v, want = %v", got, want)
+	}
+}
+
 func TestCreateParkingLot(t *testing.T) {
 	slots := generateParkingSlot(10)
 	address := "Marina Bay Sands"
@@ -41,6 +51,16 @@ func TestCreateParkingLot(t *testing.T) {
 			want:    &ParkingLot{address: address, emptySlot: qheap.PriorityQueue{}, slots: slots, highestSlot: 0, capacity: 10},
 			wantErr: false,
 		},
+		{
+			name:       "Parking lot is already created",
+			parkinglot: &ParkingLot{address: address, emptySlot: qheap.PriorityQueue{}, slots: slots, highestSlot: 0, capacity: 10},
+			args: args{
+				address:  address,
+				capacity: 10,
+			},
+			want:    &ParkingLot{address: address, emptySlot: qheap.PriorityQueue{}, slots: slots, highestSlot: 0, capacity: 10},
+			wantErr: true,
+		},
 	}
 
 	for _, tt := range tests {
@@ -50,9 +70,7 @@ func TestCreateParkingLot(t *testing.T) {
 				t.Errorf("createParkingLot() error = %v, wantErr = %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(tt.parkinglot, tt.want) {
-				t.Errorf("createParkingLot() got = %v, want = %v", tt.parkinglot, tt.want)
-			}
+			compareParkingLot(t, tt.parkinglot, tt.want)
 		})
 	}
 }
