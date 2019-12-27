@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"runtime"
+	"strconv"
 	"strings"
 	"text/tabwriter"
 
@@ -52,6 +53,9 @@ func RunCustom(args []string, runOpts *RunOptions) {
 		scanner = bufio.NewScanner(runOpts.Stdin)
 	}
 
+	// Create a parking lot
+	var parkinglot = &ParkingLot{}
+
 	exit := false
 	for !exit && scanner.Scan() {
 		input := scanner.Text()
@@ -60,8 +64,14 @@ func RunCustom(args []string, runOpts *RunOptions) {
 
 		switch {
 		case validate(cmdArgs, "create_parking_lot", 2):
-			maxSlot := 6
-			fmt.Fprintf(runOpts.Stdout, "Created a parking lot with %v slots\n", maxSlot)
+			capacity, err := strconv.Atoi(cmdArgs[1])
+			if err != nil {
+				fmt.Fprintln(runOpts.Stdout, err.Error())
+				break
+			}
+			if err := parkinglot.createParkingLot("Marina Bay Sands", capacity); err == nil {
+				fmt.Fprintf(runOpts.Stdout, "Created a parking lot with %v slots\n", capacity)
+			}
 
 		case validate(cmdArgs, "park", 3):
 			slotNo := 1
