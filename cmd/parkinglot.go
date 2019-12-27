@@ -15,16 +15,6 @@ type ParkingLot struct {
 	capacity    int // Maximum slots available
 }
 
-type Slot struct {
-	vehicle    *Vehicle
-	slotNumber int
-}
-
-type Vehicle struct {
-	registrationNumber string
-	color              string
-}
-
 // Create parking lot
 func (pl *ParkingLot) createParkingLot(address string, capacity int) error {
 	if err := pl.isCreated(); err == nil {
