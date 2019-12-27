@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"runtime"
 	"strings"
 	"text/tabwriter"
 
@@ -55,20 +56,22 @@ func RunCustom(args []string, runOpts *RunOptions) {
 	for !exit && scanner.Scan() {
 		input := scanner.Text()
 
+		cmdArgs := parse(input)
+
 		switch {
-		case validate(input, "create_parking_lot", 2):
+		case validate(cmdArgs, "create_parking_lot", 2):
 			maxSlot := 6
 			fmt.Fprintf(runOpts.Stdout, "Created a parking lot with %v slots\n", maxSlot)
 
-		case validate(input, "park", 3):
+		case validate(cmdArgs, "park", 3):
 			slotNo := 1
 			fmt.Fprintf(runOpts.Stdout, "Allocated slot number: %v\n", slotNo)
 
-		case validate(input, "leave", 2):
+		case validate(cmdArgs, "leave", 2):
 			slotNo := 1
 			fmt.Fprintf(runOpts.Stdout, "Slot number %v is free\n", slotNo)
 
-		case validate(input, "status", 1):
+		case validate(cmdArgs, "status", 1):
 			cars := []struct {
 				slot         int
 				registration string
@@ -93,7 +96,7 @@ func RunCustom(args []string, runOpts *RunOptions) {
 			}
 			w.Flush()
 
-		case validate(input, "registration_numbers_for_cars_with_colour", 2):
+		case validate(cmdArgs, "registration_numbers_for_cars_with_colour", 2):
 			var registrations []string
 			registrations = append(registrations, "KA-01-HH-1234")
 			err := printer.Fprintf(runOpts.Stdout, registrations)
@@ -101,7 +104,7 @@ func RunCustom(args []string, runOpts *RunOptions) {
 				panic(err.Error())
 			}
 
-		case validate(input, "slot_numbers_for_cars_with_colour", 2):
+		case validate(cmdArgs, "slot_numbers_for_cars_with_colour", 2):
 			var slots []int
 			slots = append(slots, 1)
 			err := printer.Fprintf(runOpts.Stdout, slots)
@@ -109,11 +112,11 @@ func RunCustom(args []string, runOpts *RunOptions) {
 				panic(err.Error())
 			}
 
-		case validate(input, "slot_number_for_registration_number", 2):
+		case validate(cmdArgs, "slot_number_for_registration_number", 2):
 			slotNo := 0
 			fmt.Fprintln(runOpts.Stdout, slotNo)
 
-		case validate(input, "exit", 1):
+		case validate(cmdArgs, "exit", 1):
 			exit = true
 
 		default:
@@ -127,11 +130,16 @@ func RunCustom(args []string, runOpts *RunOptions) {
 }
 
 func parse(input string) []string {
-	return strings.Split(input, " ")
+	cutset := "\n"
+	if runtime.GOOS == "windows" {
+		cutset = "\r\n"
+	}
+
+	trimmed := strings.TrimRight(input, cutset)
+	return strings.Split(trimmed, " ")
 }
 
-func validate(input string, expectedCmd string, expectedLength int) bool {
-	cmdArgs := parse(input)
+func validate(cmdArgs []string, expectedCmd string, expectedLength int) bool {
 	cmd := cmdArgs[0]
 	if cmd == expectedCmd && len(cmdArgs) == expectedLength {
 		return true
