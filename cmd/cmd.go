@@ -120,6 +120,10 @@ func RunCustom(args []string, runOpts *RunOptions) {
 			fmt.Fprintln(runOpts.Stdout, "Unknown input command")
 		}
 	}
+
+	if err := scanner.Err(); err != nil {
+		log.Fatal(err)
+	}
 }
 
 func parse(input string) []string {
