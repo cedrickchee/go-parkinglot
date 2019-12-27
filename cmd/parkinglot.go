@@ -35,6 +35,36 @@ func (pl *ParkingLot) createParkingLot(address string, capacity int) error {
 	return nil
 }
 
+// Park a vehicle
+func (pl *ParkingLot) park(registrationNumber string, color string) (int, error) {
+	if err := pl.isCreated(); err != nil {
+		return 0, err
+	}
+	slotNumber, err := pl.getNearestParkingSlot()
+	if err != nil {
+		return 0, err
+	}
+	pl.slots[slotNumber-1].parkVehicle(createVehicle(registrationNumber, color))
+
+	return slotNumber, nil
+}
+
+func (pl *ParkingLot) getNearestParkingSlot() (int, error) {
+	var slotNumber int
+
+	if pl.emptySlot.Len() == 0 {
+		if pl.highestSlot == pl.capacity {
+			return 0, errors.New("Sorry, parking lot is full")
+		}
+		slotNumber = pl.highestSlot + 1
+	} else {
+		item := heap.Pop(&pl.emptySlot)
+		slotNumber = item.(*qheap.Item).Value
+	}
+
+	return slotNumber, nil
+}
+
 func (pl *ParkingLot) isCreated() error {
 	if pl.capacity <= 0 {
 		return errors.New("Parking lot is not created")
