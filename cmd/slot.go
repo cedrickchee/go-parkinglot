@@ -9,3 +9,7 @@ type Slot struct {
 func (s *Slot) parkVehicle(v *Vehicle) {
 	s.vehicle = v
 }
+
+func (s *Slot) getParkingSlotNumber() int {
+	return s.slotNumber
+}

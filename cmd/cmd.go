@@ -71,11 +71,17 @@ func RunCustom(args []string, runOpts *RunOptions) {
 			}
 			if err := parkinglot.createParkingLot("Marina Bay Sands", capacity); err == nil {
 				fmt.Fprintf(runOpts.Stdout, "Created a parking lot with %v slots\n", capacity)
+			} else {
+				fmt.Fprintln(runOpts.Stdout, err.Error())
 			}
 
 		case validate(cmdArgs, "park", 3):
-			slotNo := 1
-			fmt.Fprintf(runOpts.Stdout, "Allocated slot number: %v\n", slotNo)
+			slot, err := parkinglot.park(cmdArgs[1], cmdArgs[2])
+			if err != nil {
+				fmt.Fprintln(runOpts.Stdout, err.Error())
+			} else {
+				fmt.Fprintf(runOpts.Stdout, "Allocated slot number: %v\n", slot.getParkingSlotNumber())
+			}
 
 		case validate(cmdArgs, "leave", 2):
 			slotNo := 1

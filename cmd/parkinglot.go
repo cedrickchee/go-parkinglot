@@ -36,17 +36,17 @@ func (pl *ParkingLot) createParkingLot(address string, capacity int) error {
 }
 
 // Park a vehicle
-func (pl *ParkingLot) park(registrationNumber string, color string) (int, error) {
+func (pl *ParkingLot) park(registrationNumber string, color string) (*Slot, error) {
 	if err := pl.isCreated(); err != nil {
-		return 0, err
+		return nil, err
 	}
 	slotNumber, err := pl.getNearestParkingSlot()
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 	pl.slots[slotNumber-1].parkVehicle(createVehicle(registrationNumber, color))
 
-	return slotNumber, nil
+	return pl.slots[slotNumber-1], nil
 }
 
 func (pl *ParkingLot) getNearestParkingSlot() (int, error) {
