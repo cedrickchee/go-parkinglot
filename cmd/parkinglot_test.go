@@ -30,7 +30,7 @@ type fields struct {
 func genData() fields {
 	data := fields{
 		address:    "Marina Bay Sands",
-		vehicle0:   &Vehicle{registrationNumber: "park KA-01-HH-2701", color: "Blue"},
+		vehicle0:   &Vehicle{registrationNumber: "KA-01-HH-2701", color: "Blue"},
 		vehicle1:   &Vehicle{registrationNumber: "KA-01-HH-1234", color: "White"},
 		vehicle2:   &Vehicle{registrationNumber: "KA-01-BB-0001", color: "Black"},
 		slots:      generateParkingSlot(10),
@@ -284,6 +284,47 @@ func TestLeave(t *testing.T) {
 			}
 
 			compareParkingLot(t, tt.parkinglot, tt.wantParkingLot)
+		})
+	}
+}
+
+func TestGetStatus(t *testing.T) {
+	data := genData()
+
+	slots := data.slots
+	slots[0].vehicle = data.vehicle1
+	slots[1].vehicle = data.vehicle2
+
+	tests := []struct {
+		name       string
+		parkinglot *ParkingLot
+		want       []*Slot
+	}{
+		{
+			name:       "Parking lot is not created",
+			parkinglot: &ParkingLot{},
+			want:       nil,
+		},
+		{
+			name:       "Parking lot is empty",
+			parkinglot: &ParkingLot{address: data.address, emptySlot: data.emptySlot0, slots: slots, highestSlot: 0, capacity: 10},
+			want:       nil,
+		},
+		{
+			name:       "Parking lot with vehicles",
+			parkinglot: &ParkingLot{address: data.address, emptySlot: data.emptySlot0, slots: slots, highestSlot: 2, capacity: 10},
+			want: []*Slot{
+				{slotNumber: 1, vehicle: data.vehicle1},
+				{slotNumber: 2, vehicle: data.vehicle2},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.parkinglot.getStatus(); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("getStatus() got = %v, want %v", got, tt.want)
+			}
 		})
 	}
 }

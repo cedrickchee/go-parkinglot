@@ -88,6 +88,25 @@ func (pl *ParkingLot) leave(slotNumber int) error {
 	return errors.New("Vehicle is not found in parking lot")
 }
 
+// Get a list of vehicles parked in the parking lot, ordered by slot number
+func (pl *ParkingLot) getStatus() []*Slot {
+	if err := pl.isCreated(); err != nil {
+		return nil
+	}
+
+	var slots []*Slot
+
+	for i := 0; i < pl.highestSlot; i++ {
+		slot := pl.slots[i]
+		vehicle := slot.getVehicle()
+		if vehicle != nil {
+			slots = append(slots, slot)
+		}
+	}
+
+	return slots
+}
+
 func (pl *ParkingLot) isCreated() error {
 	if pl.capacity <= 0 {
 		return errors.New("Parking lot is not created")
