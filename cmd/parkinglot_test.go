@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"reflect"
 	"testing"
 
@@ -109,7 +108,7 @@ func TestGetNearestParkingSlot(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := tt.parkinglot.getNearestParkingSlot()
-			fmt.Printf("test: %v, got: %v, err: %v\n", tt.name, got, err)
+			// fmt.Printf("test: %v, got: %v, err: %v\n", tt.name, got, err)
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("getNearestParkingSlot() error = %v, wantErr = %v", err, tt.wantErr)
@@ -118,6 +117,106 @@ func TestGetNearestParkingSlot(t *testing.T) {
 			if got != tt.want {
 				t.Errorf("getNearestParkingSlot() got = %v, want = %v", got, tt.want)
 			}
+		})
+	}
+}
+
+func TestPark(t *testing.T) {
+	// Test data
+	vehicle0 := &Vehicle{registrationNumber: "park KA-01-HH-2701", color: "Blue"}
+	vehicle1 := &Vehicle{registrationNumber: "KA-01-HH-1234", color: "White"}
+	vehicle2 := &Vehicle{registrationNumber: "KA-01-BB-0001", color: "Black"}
+
+	emptySlot0 := qheap.PriorityQueue{}
+	item1 := &qheap.Item{Value: 1}
+	emptySlot1 := qheap.PriorityQueue{item1}
+
+	slots := generateParkingSlot(2)
+	address := "Marina Bay Sands"
+	slots[0].vehicle = vehicle2
+	slotAfterParkedByVehicle2 := slots[0] // slots[0] is slot marked with number 1
+	// vehicle2 left slot 1, and then vehicle1 park at slot 1
+	slots[0].vehicle = vehicle1
+	slotAfterParkedByVehicle1 := slots[0]
+
+	type args struct {
+		registrationNumber string
+		color              string
+	}
+
+	tests := []struct {
+		name string
+		// fields  fields
+		parkinglot     *ParkingLot
+		args           args
+		wantSlot       *Slot
+		wantErr        bool
+		wantParkingLot *ParkingLot
+	}{
+		{
+			name:       "ParkingLot is not created",
+			parkinglot: &ParkingLot{},
+			args: args{
+				registrationNumber: vehicle1.registrationNumber,
+				color:              vehicle1.color,
+			},
+			wantSlot:       nil,
+			wantErr:        true,
+			wantParkingLot: &ParkingLot{},
+		},
+		{
+			name:       "Park vehicle into new slot",
+			parkinglot: &ParkingLot{address: address, emptySlot: emptySlot0, slots: slots, highestSlot: 0, capacity: 2},
+			args: args{
+				registrationNumber: vehicle2.registrationNumber,
+				color:              vehicle2.color,
+			},
+			wantSlot:       slotAfterParkedByVehicle2, // expected slotNumber = 1, vehicle2 with registrationNumber = KA-01-BB-0001
+			wantErr:        false,
+			wantParkingLot: &ParkingLot{address: address, emptySlot: emptySlot0, slots: slots, highestSlot: 1, capacity: 2},
+		},
+		{
+			name:       "Park vehicle into a previously occupied but now free slot",
+			parkinglot: &ParkingLot{address: address, emptySlot: emptySlot1, slots: slots, highestSlot: 1, capacity: 2},
+			args: args{
+				registrationNumber: vehicle1.registrationNumber,
+				color:              vehicle1.color,
+			},
+			wantSlot:       slotAfterParkedByVehicle1, // expected slotNumber = 1, vehicle1 with registrationNumber = KA-01-HH-1234
+			wantErr:        false,
+			wantParkingLot: &ParkingLot{address: address, emptySlot: emptySlot0, slots: slots, highestSlot: 1, capacity: 2},
+		},
+		{
+			name:       "Park car when parking lot is full",
+			parkinglot: &ParkingLot{address: address, emptySlot: emptySlot0, slots: slots, highestSlot: 2, capacity: 2},
+			args: args{
+				registrationNumber: vehicle0.registrationNumber,
+				color:              vehicle0.color,
+			},
+			wantSlot:       nil,
+			wantErr:        true,
+			wantParkingLot: &ParkingLot{address: address, emptySlot: emptySlot0, slots: slots, highestSlot: 2, capacity: 2},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := tt.parkinglot.park(tt.args.registrationNumber, tt.args.color)
+			// fmt.Printf("test: %v, got: %v, err: %v\n", tt.name, got, err)
+			// if got != nil {
+			// 	fmt.Printf("test: %v, gotSlot: %v, vehicle num: %v\n", tt.name, got.getParkingSlotNumber(), got.vehicle.registrationNumber)
+			// }
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("park() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if got != tt.wantSlot {
+				t.Errorf("park() got = %v, wantSlot %v", got, tt.wantSlot)
+			}
+
+			compareParkingLot(t, tt.parkinglot, tt.wantParkingLot)
 		})
 	}
 }
