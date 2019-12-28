@@ -96,26 +96,12 @@ func RunCustom(args []string, runOpts *RunOptions) {
 			}
 
 		case validate(cmdArgs, "status", 1):
-			cars := []struct {
-				slot         int
-				registration string
-				colour       string
-			}{
-				{
-					slot:         0,
-					registration: "KA-01-HH-1234",
-					colour:       "White",
-				},
-				{
-					slot:         1,
-					registration: "KA-01-HH-9999",
-					colour:       "Black",
-				},
-			}
+			slots := parkinglot.getStatus()
 			var w = tabwriter.NewWriter(runOpts.Stdout, 0, 0, 4, ' ', 0)
 			fmt.Fprintln(w, "Slot No.\tRegistration No\tColour")
-			for _, car := range cars {
-				s := fmt.Sprintf("%v\t%s\t%s", car.slot, car.registration, car.colour)
+			for _, slot := range slots {
+				vehicle := slot.getVehicle()
+				s := fmt.Sprintf("%v\t%s\t%s", slot.getParkingSlotNumber(), vehicle.getNumber(), vehicle.getColor())
 				fmt.Fprintln(w, s)
 			}
 			w.Flush()
