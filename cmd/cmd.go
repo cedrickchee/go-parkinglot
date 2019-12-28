@@ -84,8 +84,16 @@ func RunCustom(args []string, runOpts *RunOptions) {
 			}
 
 		case validate(cmdArgs, "leave", 2):
-			slotNo := 1
-			fmt.Fprintf(runOpts.Stdout, "Slot number %v is free\n", slotNo)
+			slotNumber, err := strconv.Atoi(cmdArgs[1])
+			if err != nil {
+				fmt.Fprintln(runOpts.Stdout, err.Error())
+				break
+			}
+			if err := parkinglot.leave(slotNumber); err != nil {
+				fmt.Fprintln(runOpts.Stdout, err.Error())
+			} else {
+				fmt.Fprintf(runOpts.Stdout, "Slot number %v is free\n", slotNumber)
+			}
 
 		case validate(cmdArgs, "status", 1):
 			cars := []struct {
