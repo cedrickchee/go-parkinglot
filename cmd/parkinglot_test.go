@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 
@@ -71,6 +72,52 @@ func TestCreateParkingLot(t *testing.T) {
 				return
 			}
 			compareParkingLot(t, tt.parkinglot, tt.want)
+		})
+	}
+}
+
+func TestGetNearestParkingSlot(t *testing.T) {
+	address := "Marina Bay Sands"
+	state := &ParkingLot{address: address, emptySlot: qheap.PriorityQueue{}, slots: generateParkingSlot(2), highestSlot: 0, capacity: 2}
+
+	tests := []struct {
+		name       string
+		parkinglot *ParkingLot
+		// fields  fields
+		want    int
+		wantErr bool
+	}{
+		{
+			name:       "Empty parking lot with 2 available slots",
+			parkinglot: state,
+			want:       1,
+			wantErr:    false,
+		},
+		{
+			name:       "2 slots parking lot with 1 available slots",
+			parkinglot: state,
+			want:       2,
+			wantErr:    false,
+		},
+		{
+			name:       "Parking lot with unavailable slots",
+			parkinglot: state,
+			want:       0,
+			wantErr:    true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := tt.parkinglot.getNearestParkingSlot()
+			fmt.Printf("test: %v, got: %v, err: %v\n", tt.name, got, err)
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("getNearestParkingSlot() error = %v, wantErr = %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("getNearestParkingSlot() got = %v, want = %v", got, tt.want)
+			}
 		})
 	}
 }
