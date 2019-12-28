@@ -66,6 +66,28 @@ func (pl *ParkingLot) getNearestParkingSlot() (int, error) {
 	return slotNumber, nil
 }
 
+// Remove vehicle from parking slot
+func (pl *ParkingLot) leave(slotNumber int) error {
+	if err := pl.isCreated(); err != nil {
+		return err
+	}
+	if slotNumber <= 0 || slotNumber > pl.capacity {
+		return errors.New("Invalid slot number")
+	}
+
+	slot := pl.slots[slotNumber-1]
+	if slot.getVehicle() != nil {
+		// Remove vehicle from slot
+		slot.removeVehicle()
+		// Add empty slot to the heap
+		heap.Push(&pl.emptySlot, &qheap.Item{Value: slotNumber})
+
+		return nil
+	}
+
+	return errors.New("Vehicle is not found in parking lot")
+}
+
 func (pl *ParkingLot) isCreated() error {
 	if pl.capacity <= 0 {
 		return errors.New("Parking lot is not created")

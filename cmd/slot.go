@@ -13,3 +13,11 @@ func (s *Slot) parkVehicle(v *Vehicle) {
 func (s *Slot) getParkingSlotNumber() int {
 	return s.slotNumber
 }
+
+func (s *Slot) getVehicle() *Vehicle {
+	return s.vehicle
+}
+
+func (s *Slot) removeVehicle() {
+	s.vehicle = nil
+}
