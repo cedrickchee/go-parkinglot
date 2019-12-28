@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 
@@ -16,13 +17,39 @@ func generateParkingSlot(capacity int) []*Slot {
 	return slots
 }
 
+type fields struct {
+	address    string
+	vehicle0   *Vehicle
+	vehicle1   *Vehicle
+	vehicle2   *Vehicle
+	slots      []*Slot
+	item1      *qheap.Item
+	emptySlot0 qheap.PriorityQueue
+	emptySlot1 qheap.PriorityQueue
+}
+
+func genData() fields {
+	data := fields{
+		address:    "Marina Bay Sands",
+		vehicle0:   &Vehicle{registrationNumber: "park KA-01-HH-2701", color: "Blue"},
+		vehicle1:   &Vehicle{registrationNumber: "KA-01-HH-1234", color: "White"},
+		vehicle2:   &Vehicle{registrationNumber: "KA-01-BB-0001", color: "Black"},
+		slots:      generateParkingSlot(10),
+		item1:      &qheap.Item{Value: 1},
+		emptySlot0: qheap.PriorityQueue{},
+	}
+	data.emptySlot1 = qheap.PriorityQueue{data.item1}
+
+	return data
+}
+
 func compareParkingLot(t *testing.T, got *ParkingLot, want *ParkingLot) {
 	if !reflect.DeepEqual(got.emptySlot, want.emptySlot) ||
 		!reflect.DeepEqual(got.slots, want.slots) ||
 		got.address != want.address ||
 		got.highestSlot != want.highestSlot ||
 		got.capacity != want.capacity {
-		t.Errorf("createParkingLot() got = %v, want = %v", got, want)
+		t.Errorf("ParkingLot got = %v, want = %v", got, want)
 	}
 }
 
@@ -82,9 +109,8 @@ func TestGetNearestParkingSlot(t *testing.T) {
 	tests := []struct {
 		name       string
 		parkinglot *ParkingLot
-		// fields  fields
-		want    int
-		wantErr bool
+		want       int
+		wantErr    bool
 	}{
 		{
 			name:       "Empty parking lot with 2 available slots",
@@ -108,7 +134,6 @@ func TestGetNearestParkingSlot(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := tt.parkinglot.getNearestParkingSlot()
-			// fmt.Printf("test: %v, got: %v, err: %v\n", tt.name, got, err)
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("getNearestParkingSlot() error = %v, wantErr = %v", err, tt.wantErr)
@@ -145,8 +170,7 @@ func TestPark(t *testing.T) {
 	}
 
 	tests := []struct {
-		name string
-		// fields  fields
+		name           string
 		parkinglot     *ParkingLot
 		args           args
 		wantSlot       *Slot
@@ -202,10 +226,6 @@ func TestPark(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := tt.parkinglot.park(tt.args.registrationNumber, tt.args.color)
-			// fmt.Printf("test: %v, got: %v, err: %v\n", tt.name, got, err)
-			// if got != nil {
-			// 	fmt.Printf("test: %v, gotSlot: %v, vehicle num: %v\n", tt.name, got.getParkingSlotNumber(), got.vehicle.registrationNumber)
-			// }
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("park() error = %v, wantErr %v", err, tt.wantErr)
@@ -214,6 +234,61 @@ func TestPark(t *testing.T) {
 
 			if got != tt.wantSlot {
 				t.Errorf("park() got = %v, wantSlot %v", got, tt.wantSlot)
+			}
+
+			compareParkingLot(t, tt.parkinglot, tt.wantParkingLot)
+		})
+	}
+}
+
+func TestLeave(t *testing.T) {
+	data := genData()
+
+	slots := data.slots
+	slots[0].vehicle = data.vehicle0
+
+	type args struct {
+		slotNumber int
+	}
+
+	tests := []struct {
+		name           string
+		parkinglot     *ParkingLot
+		args           args
+		wantErr        bool
+		wantParkingLot *ParkingLot
+	}{
+		{
+			name:           "ParkingLot is not created",
+			parkinglot:     &ParkingLot{},
+			args:           args{slotNumber: 1},
+			wantErr:        true,
+			wantParkingLot: &ParkingLot{},
+		},
+		{
+			name:           "Leave existing vehicle",
+			parkinglot:     &ParkingLot{address: data.address, emptySlot: data.emptySlot0, slots: slots, highestSlot: 2, capacity: 10},
+			args:           args{slotNumber: 1},
+			wantErr:        false,
+			wantParkingLot: &ParkingLot{address: data.address, emptySlot: data.emptySlot1, slots: slots, highestSlot: 2, capacity: 10},
+		},
+		{
+			name:           "Leave non-existent vehicle",
+			parkinglot:     &ParkingLot{address: data.address, emptySlot: data.emptySlot1, slots: slots, highestSlot: 2, capacity: 10},
+			args:           args{slotNumber: 2},
+			wantErr:        true,
+			wantParkingLot: &ParkingLot{address: data.address, emptySlot: data.emptySlot1, slots: slots, highestSlot: 2, capacity: 10},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.parkinglot.leave(tt.args.slotNumber)
+			fmt.Printf("test name: %v, err: %v\n", tt.name, err)
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("leave() error = %v, wantErr %v", err, tt.wantErr)
+				return
 			}
 
 			compareParkingLot(t, tt.parkinglot, tt.wantParkingLot)
