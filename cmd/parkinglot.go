@@ -57,6 +57,7 @@ func (pl *ParkingLot) getNearestParkingSlot() (int, error) {
 			return 0, errors.New("Sorry, parking lot is full")
 		}
 		slotNumber = pl.highestSlot + 1
+		pl.highestSlot = slotNumber
 	} else {
 		item := heap.Pop(&pl.emptySlot)
 		slotNumber = item.(*qheap.Item).Value
