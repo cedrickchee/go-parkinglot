@@ -129,8 +129,12 @@ func RunCustom(args []string, runOpts *RunOptions) {
 			}
 
 		case validate(cmdArgs, "slot_number_for_registration_number", 2):
-			slotNo := 0
-			fmt.Fprintln(runOpts.Stdout, slotNo)
+			slotNumber, err := parkinglot.getVehicleByRegistrationNumber(cmdArgs[1])
+			if err != nil {
+				fmt.Fprintln(runOpts.Stdout, err.Error())
+				break
+			}
+			fmt.Fprintln(runOpts.Stdout, slotNumber)
 
 		case validate(cmdArgs, "exit", 1):
 			exit = true
