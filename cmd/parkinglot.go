@@ -107,6 +107,27 @@ func (pl *ParkingLot) getStatus() []*Slot {
 	return slots
 }
 
+// Given a vehicle color, get the vehicle slot and registration numbers
+func (pl *ParkingLot) getVehiclesByColor(color string) ([]int, []string, error) {
+	var slots []int
+	var regisNumbers []string
+
+	for i := 0; i < pl.highestSlot; i++ {
+		slot := pl.slots[i]
+		vehicle := slot.getVehicle()
+		if vehicle != nil && vehicle.getColor() == color {
+			slots = append(slots, slot.getParkingSlotNumber())
+			regisNumbers = append(regisNumbers, vehicle.getNumber())
+		}
+	}
+
+	if slots == nil {
+		return nil, nil, errors.New("Not found")
+	}
+
+	return slots, regisNumbers, nil
+}
+
 func (pl *ParkingLot) isCreated() error {
 	if pl.capacity <= 0 {
 		return errors.New("Parking lot is not created")
