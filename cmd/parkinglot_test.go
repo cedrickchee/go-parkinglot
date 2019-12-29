@@ -398,3 +398,38 @@ func TestGetVehiclesByColor(t *testing.T) {
 		})
 	}
 }
+
+func TestGetVehicleByRegistrationNumber(t *testing.T) {
+	type args struct {
+		registrationNumber string
+	}
+
+	tests := []struct {
+		name       string
+		parkinglot *ParkingLot
+		args       args
+		want       int
+		wantErr    bool
+	}{
+		{
+			name:       "Parking lot is not created",
+			parkinglot: &ParkingLot{},
+			args:       args{registrationNumber: "KA-01-HH-1234"},
+			want:       0,
+			wantErr:    true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := tt.parkinglot.getVehicleByRegistrationNumber(tt.args.registrationNumber)
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("getVehicleByRegistrationNumber() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if got != tt.want {
+				t.Errorf("getVehicleByRegistrationNumber() got = %v, want = %v", got, tt.want)
+			}
+		})
+	}
+}

@@ -128,6 +128,10 @@ func (pl *ParkingLot) getVehiclesByColor(color string) ([]int, []string, error) 
 	return slots, regisNumbers, nil
 }
 
+func (pl *ParkingLot) getVehicleByRegistrationNumber(registrationNumber string) (int, error) {
+	return 0, nil
+}
+
 func (pl *ParkingLot) isCreated() error {
 	if pl.capacity <= 0 {
 		return errors.New("Parking lot is not created")
