@@ -128,8 +128,17 @@ func (pl *ParkingLot) getVehiclesByColor(color string) ([]int, []string, error) 
 	return slots, regisNumbers, nil
 }
 
+// Given a vehicle registration number, get the vehicle slot number
 func (pl *ParkingLot) getVehicleByRegistrationNumber(registrationNumber string) (int, error) {
-	return 0, nil
+	for i := 0; i < pl.highestSlot; i++ {
+		slot := pl.slots[i]
+		vehicle := slot.getVehicle()
+		if vehicle != nil && vehicle.getNumber() == registrationNumber {
+			return slot.getParkingSlotNumber(), nil
+		}
+	}
+
+	return 0, errors.New("Not found")
 }
 
 func (pl *ParkingLot) isCreated() error {
