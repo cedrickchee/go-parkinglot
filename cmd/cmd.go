@@ -107,9 +107,12 @@ func RunCustom(args []string, runOpts *RunOptions) {
 			w.Flush()
 
 		case validate(cmdArgs, "registration_numbers_for_cars_with_colour", 2):
-			var registrations []string
-			registrations = append(registrations, "KA-01-HH-1234")
-			err := printer.Fprintf(runOpts.Stdout, registrations)
+			_, regisNumbers, err := parkinglot.getVehiclesByColor(cmdArgs[1])
+			if err != nil {
+				fmt.Fprintln(runOpts.Stdout, err.Error())
+				break
+			}
+			err = printer.Fprintf(runOpts.Stdout, regisNumbers)
 			if err != nil {
 				panic(err.Error())
 			}
