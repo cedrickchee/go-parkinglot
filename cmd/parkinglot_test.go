@@ -400,6 +400,11 @@ func TestGetVehiclesByColor(t *testing.T) {
 }
 
 func TestGetVehicleByRegistrationNumber(t *testing.T) {
+	data := genData()
+
+	slots := data.slots
+	slots[0].vehicle = data.vehicle1
+
 	type args struct {
 		registrationNumber string
 	}
@@ -414,6 +419,27 @@ func TestGetVehicleByRegistrationNumber(t *testing.T) {
 		{
 			name:       "Parking lot is not created",
 			parkinglot: &ParkingLot{},
+			args:       args{registrationNumber: "KA-01-HH-1234"},
+			want:       0,
+			wantErr:    true,
+		},
+		{
+			name:       "Parking lot has vehicle of given registration number",
+			parkinglot: &ParkingLot{address: data.address, emptySlot: data.emptySlot0, slots: slots, highestSlot: 1, capacity: 10},
+			args:       args{registrationNumber: "KA-01-HH-1234"},
+			want:       1,
+			wantErr:    false,
+		},
+		{
+			name:       "Parking lot don't have vehicle of given registration number",
+			parkinglot: &ParkingLot{address: data.address, emptySlot: data.emptySlot1, slots: slots, highestSlot: 2, capacity: 10},
+			args:       args{registrationNumber: "KA-01-BB-0001"},
+			want:       0,
+			wantErr:    true,
+		},
+		{
+			name:       "Parking lot is empty",
+			parkinglot: &ParkingLot{address: data.address, emptySlot: data.emptySlot0, slots: slots, highestSlot: 0, capacity: 10},
 			args:       args{registrationNumber: "KA-01-HH-1234"},
 			want:       0,
 			wantErr:    true,
