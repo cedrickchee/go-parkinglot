@@ -328,3 +328,73 @@ func TestGetStatus(t *testing.T) {
 		})
 	}
 }
+
+func TestGetVehiclesByColor(t *testing.T) {
+	data := genData()
+
+	slots := data.slots
+	slots[0].vehicle = data.vehicle1
+
+	type args struct {
+		color string
+	}
+
+	tests := []struct {
+		name         string
+		parkinglot   *ParkingLot
+		args         args
+		wantSlot     []int
+		wantRegisNum []string
+		wantErr      bool
+	}{
+		{
+			name:         "Parking lot is not created",
+			parkinglot:   &ParkingLot{},
+			args:         args{color: "White"},
+			wantSlot:     nil,
+			wantRegisNum: nil,
+			wantErr:      true,
+		},
+		{
+			name:         "A vehicle is parked and the color is White",
+			parkinglot:   &ParkingLot{address: data.address, emptySlot: data.emptySlot0, slots: slots, highestSlot: 1, capacity: 10},
+			args:         args{color: "White"},
+			wantSlot:     []int{1},
+			wantRegisNum: []string{"KA-01-HH-1234"},
+			wantErr:      false,
+		},
+		{
+			name:         "A vehicle is not parked with the requested color",
+			parkinglot:   &ParkingLot{address: data.address, emptySlot: data.emptySlot1, slots: slots, highestSlot: 2, capacity: 10},
+			args:         args{color: "Black"},
+			wantSlot:     nil,
+			wantRegisNum: nil,
+			wantErr:      true,
+		},
+		{
+			name:         "Parking lot is empty",
+			parkinglot:   &ParkingLot{address: data.address, emptySlot: data.emptySlot0, slots: slots, highestSlot: 0, capacity: 10},
+			args:         args{color: "White"},
+			wantSlot:     nil,
+			wantRegisNum: nil,
+			wantErr:      true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotSlots, gotRegisNumbers, err := tt.parkinglot.getVehiclesByColor(tt.args.color)
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("getVehiclesByColor() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(gotSlots, tt.wantSlot) {
+				t.Errorf("getVehiclesByColor() gotSlots = %v, want %v", gotSlots, tt.wantSlot)
+			}
+			if !reflect.DeepEqual(gotRegisNumbers, tt.wantRegisNum) {
+				t.Errorf("getVehiclesByColor() gotRegisNumbers = %v, want %v", gotRegisNumbers, tt.wantRegisNum)
+			}
+		})
+	}
+}
