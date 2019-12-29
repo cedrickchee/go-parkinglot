@@ -118,9 +118,12 @@ func RunCustom(args []string, runOpts *RunOptions) {
 			}
 
 		case validate(cmdArgs, "slot_numbers_for_cars_with_colour", 2):
-			var slots []int
-			slots = append(slots, 1)
-			err := printer.Fprintf(runOpts.Stdout, slots)
+			slotNumbers, _, err := parkinglot.getVehiclesByColor(cmdArgs[1])
+			if err != nil {
+				fmt.Fprintln(runOpts.Stdout, err.Error())
+				break
+			}
+			err = printer.Fprintf(runOpts.Stdout, slotNumbers)
 			if err != nil {
 				panic(err.Error())
 			}
